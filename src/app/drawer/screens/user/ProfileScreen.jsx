@@ -42,25 +42,31 @@ export default function ProfileScreen() {
             source={{
               uri:
                 user.profileImage ||
-                "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                "https://i.ibb.co/vxbfSSv5/f6e90bbfdf38.jpg",
             }}
             style={styles.avatar}
           />
-          <Text style={styles.name}>{user.name || "N/A"}</Text>
+          <Text style={styles.name}>
+            {user.firstName} {user.familyName}
+          </Text>
           <Text style={styles.role}>{user.role || "N/A"}</Text>
         </View>
 
         {/* Info Section */}
         <View style={styles.infoCard}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
+          <InfoRow label="Email" value={user.email || "N/A"} />
           <InfoRow label="Date of Birth" value={user.dob || "N/A"} />
           <InfoRow label="Citizenship" value={user.citizenship || "N/A"} />
-          {user.citizenship === "Immigrant" && (
+
+          {user.citizenship !== "Australian" && (
             <>
-              <InfoRow label="Visa Type" value={user.visaType || "N/A"} />
-              <InfoRow label="Visa Expiry" value={user.visaExpiry || "N/A"} />
+              <InfoRow label="Visa Type" value={user.visa || "N/A"} />
+              <InfoRow label="Visa Expiry" value={user.visa_expire || "N/A"} />
             </>
           )}
+
+          <InfoRow label="Employee ID" value={user.emp_id || "N/A"} />
           <InfoRow label="Role" value={user.role || "N/A"} />
         </View>
 

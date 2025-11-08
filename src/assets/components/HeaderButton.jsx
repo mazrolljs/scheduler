@@ -1,25 +1,36 @@
 // components/HeaderPaintButton.js
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { Colors } from "../constants/colors";
+//mport { useNavigation } from "@react-navigation/native";
 
-export default function HeaderButton() {
-  const navigation = useNavigation();
-  //  const route = useRoute();
+export default class HeaderButton extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      drawMode: true, // ✅ Start in Paint mode by default
+    };
+  }
 
-  // ✅ Start in Paint mode by default
-  const [drawMode, setDrawMode] = useState(true);
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.drawMode !== this.state.drawMode) {
+      // ✅ Send the updated drawMode to the current screen via params
+      this.props.navigation.setParams({ drawMode: this.state.drawMode });
+    }
+  }
 
-  // ✅ Send the updated drawMode to the current screen via params
-  useEffect(() => {
-    navigation.setParams({ drawMode });
-  }, [drawMode, navigation]);
+  toggleDrawMode = () => {
+    this.setState((prevState) => ({ drawMode: !prevState.drawMode }));
+  };
 
-  return (
-    <Button
-      title={drawMode ? "🖌️ Paint" : "🧽 Erase"}
-      color={drawMode ? "#007AFF" : "#FF9500"}
-      onPress={() => setDrawMode((prev) => !prev)} // ✅ toggle paint/erase
-    />
-  );
+  render() {
+    const { drawMode } = this.state;
+    return (
+      <Button
+        title={drawMode ? "🖌️ Paint" : "🧽 Erase"}
+        color={drawMode ? Colors.PRIMARY : Colors.SECONDARY}
+        onPress={this.toggleDrawMode} // ✅ toggle paint/erase
+      />
+    );
+  }
 }

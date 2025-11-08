@@ -12,6 +12,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 const schema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),
   password: yup
+
     .string()
     .min(6, "Min 6 characters")
     .required("Password is required"),
@@ -66,7 +67,7 @@ const SignIn = () => {
       );
 
       router.push("../drawer/DrawerNavigator");
-      console.log("📄 User data:", userData.role);
+      //console.log("📄 User data:", userData.role);
       // 🧭 Role-based navigation
       /*switch (userData.role) {
         case "admin":
@@ -144,7 +145,7 @@ const SignIn = () => {
       <TouchableOpacity
         onPress={handleSubmit(handleSignIn)}
         disabled={isSubmitting}
-        className={`rounded-lg p-4 mb-4 ${isSubmitting ? "bg-gray-400" : "bg-indigo-600"}`}
+        className={`rounded-lg p-4 mb-4 ${isSubmitting ? "bg-gray-400" : "bg-purple-900"}`}
       >
         <Text className="text-white text-center font-semibold text-lg">
           {isSubmitting ? "Signing in..." : "Sign In"}
@@ -153,7 +154,7 @@ const SignIn = () => {
 
       {/* SIGN UP LINK */}
       <TouchableOpacity onPress={() => router.push("/screens/SignUp")}>
-        <Text className="text-center text-indigo-600">
+        <Text className="text-center text-purple-900">
           Don’t have an account? Sign Up
         </Text>
       </TouchableOpacity>

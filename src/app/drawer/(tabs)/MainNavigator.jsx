@@ -67,7 +67,7 @@ export default function MainNavigator() {
         flexGrow: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#F8F9FF",
+        backgroundColor: Colors.Pcalight.background,
         paddingVertical: 20,
       }}
     >
@@ -76,7 +76,7 @@ export default function MainNavigator() {
           fontSize: 22,
           fontWeight: "700",
           marginBottom: 20,
-          color: "#425b91",
+          color: Colors.Pcalight.text,
         }}
       >
         Dashboard
@@ -114,6 +114,7 @@ export default function MainNavigator() {
                 width: 64,
                 height: 64,
                 marginBottom: 8,
+                tintColor: role === "admin" ? Colors.PRIMARY : Colors.SECONDARY,
               }}
               resizeMode="contain"
             />
@@ -121,6 +122,7 @@ export default function MainNavigator() {
               style={{
                 fontSize: 16,
                 fontWeight: "600",
+
                 color: Colors.Pcalight.text,
               }}
             >

@@ -1,8 +1,8 @@
 //DineTime/context/UserContext.jsx
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../services/firebaseConfig";
-import { doc, collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 const AuthContext = createContext();
 
@@ -14,13 +14,18 @@ export const useUser = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+export class AuthProvider extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      user: null,
+      role: null,
+      loading: true,
+    };
+  }
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+  componentDidMount() {
+    this.unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Fetch user data from Firestore
         const q = query(
@@ -31,30 +36,42 @@ export const AuthProvider = ({ children }) => {
 
         if (!snapshot.empty) {
           const userData = snapshot.docs[0].data();
-          setUser({ uid: firebaseUser.uid, ...userData });
-          setRole(userData.role);
+          this.setState({
+            user: { uid: firebaseUser.uid, ...userData },
+            role: userData.role,
+          });
           console.log("📄 AuthContext loaded user role:", userData.role);
         } else {
           console.warn(
             "⚠️ No Firestore profile found for UID:",
             firebaseUser.uid
           );
-          setUser(firebaseUser);
-          setRole(null);
+          this.setState({ user: firebaseUser, role: null });
         }
       } else {
-        setUser(null);
-        setRole(null);
+        this.setState({ user: null, role: null });
       }
-      setLoading(false);
+      this.setState({ loading: false });
     });
+  }
 
-    return () => unsubscribe();
-  }, []);
+  componentWillUnmount() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
+  }
 
-  return (
-    <AuthContext.Provider value={{ user, role, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  render() {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: this.state.user,
+          role: this.state.role,
+          loading: this.state.loading,
+        }}
+      >
+        {this.props.children}
+      </AuthContext.Provider>
+    );
+  }
+}

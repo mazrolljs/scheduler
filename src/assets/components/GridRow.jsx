@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
+import { Colors } from "../constants/colors";
 
 export default function GridRow({
   hour,
@@ -21,7 +22,7 @@ export default function GridRow({
           height: boxHeight,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#eee",
+          backgroundColor: Colors.light.background,
           borderRightWidth: 1,
           borderBottomWidth: 1,
           borderColor: "#ccc",
@@ -39,7 +40,9 @@ export default function GridRow({
             borderRightWidth: 1,
             borderBottomWidth: 1,
             borderColor: "#ccc",
-            backgroundColor: filled[colIdx][rowIdx] ? "#4Fb6E5" : "#f2f2f2",
+            backgroundColor: filled[colIdx][rowIdx]
+              ? Colors.SECONDARY
+              : Colors.light.background,
           }}
         />
       ))}

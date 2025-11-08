@@ -11,6 +11,7 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../../../services/firebaseConfig"; // ✅ your firebase connection file
+import { Colors } from "../../../../assets/constants/colors";
 
 export default function ShiftSharingScreen() {
   const [date, setDate] = useState(new Date());
@@ -159,7 +160,7 @@ export default function ShiftSharingScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: Colors.Pcalight.background,
   },
   container: {
     flex: 1,
@@ -168,13 +169,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#111827",
+    color: Colors.dark.background,
     marginBottom: 20,
     textAlign: "center",
   },
   input: {
     padding: 14,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -182,11 +183,11 @@ const styles = StyleSheet.create({
   },
   inputText: {
     fontSize: 16,
-    color: "#374151",
+    color: Colors.light.text,
   },
   textInput: {
     padding: 14,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -194,13 +195,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   saveButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: Colors.PRIMARY,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
   },
   saveButtonText: {
-    color: "#fff",
+    color: Colors.light.background,
     fontSize: 18,
     fontWeight: "600",
   },

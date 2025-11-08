@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Text,
@@ -10,17 +10,18 @@ import {
   BackHandler,
 } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
-import { db, auth } from "../../services/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import DropDownPicker from "react-native-dropdown-picker";
-import { router } from "expo-router";
 import {
+  db,
+  auth,
   generateNextEmpId,
   fetchLocations,
 } from "../../services/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+//import { useForm, Controller } from "react-hook-form";
+//import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import DropDownPicker from "react-native-dropdown-picker";
+import { router } from "expo-router";
 
 const schema = yup.object().shape({
   firstName: yup.string().required("First name is required"),
@@ -32,50 +33,57 @@ const schema = yup.object().shape({
   emp_location: yup.array().min(1, "Select at least one location"),
 });
 
-export default function SignUp() {
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState([]);
+export default class SignUp extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      open: false,
+      items: [],
+      formData: {
+        firstName: "",
+        middleName: "",
+        familyName: "",
+        email: "",
+        password: "",
+        role: "",
+        emp_location: [],
+      },
+      errors: {},
+    };
+  }
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      emp_location: [],
-    },
-  });
-
-  useEffect(() => {
+  componentDidMount() {
     const backAction = () => {
       router.back();
       return true;
     };
-    const backHandler = BackHandler.addEventListener(
+    this.backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction
     );
-    return () => backHandler.remove();
-  }, []);
+    this.loadLocations();
+  }
 
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const locs = await fetchLocations(db);
-        const dropdownData = locs.map((loc) => ({
-          label: `${loc.location_id} - ${loc.address}`,
-          value: loc.id,
-        }));
-        setItems(dropdownData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    loadLocations();
-  }, []);
+  componentWillUnmount() {
+    if (this.backHandler) {
+      this.backHandler.remove();
+    }
+  }
 
-  const onSubmit = async (data) => {
+  loadLocations = async () => {
+    try {
+      const locs = await fetchLocations(db);
+      const dropdownData = locs.map((loc) => ({
+        label: `${loc.location_id} - ${loc.address}`,
+        value: loc.id,
+      }));
+      this.setState({ items: dropdownData });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  onSubmit = async (data) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -113,158 +121,140 @@ export default function SignUp() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Sign Up</Text>
+  handleInputChange = (field, value) => {
+    this.setState((prevState) => ({
+      formData: {
+        ...prevState.formData,
+        [field]: value,
+      },
+    }));
+  };
 
-        <Controller
-          control={control}
-          name="firstName"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder="First Name"
-              onChangeText={onChange}
-              value={value}
-            />
+  handleSubmit = () => {
+    const { formData } = this.state;
+    // Validate using yup
+    schema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        this.setState({ errors: {} });
+        this.onSubmit(formData);
+      })
+      .catch((validationErrors) => {
+        const errors = {};
+        validationErrors.inner.forEach((err) => {
+          errors[err.path] = err.message;
+        });
+        this.setState({ errors });
+      });
+  };
+
+  render() {
+    const { open, items, formData, errors } = this.state;
+
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Sign Up</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="First Name"
+            onChangeText={(value) => this.handleInputChange("firstName", value)}
+            value={formData.firstName}
+          />
+          {errors.firstName && (
+            <Text style={styles.error}>{errors.firstName}</Text>
           )}
-        />
-        {errors.firstName && (
-          <Text style={styles.error}>{errors.firstName.message}</Text>
-        )}
 
-        <Controller
-          control={control}
-          name="middleName"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder="Middle Name"
-              onChangeText={onChange}
-              value={value}
-            />
+          <TextInput
+            style={styles.input}
+            placeholder="Middle Name"
+            onChangeText={(value) =>
+              this.handleInputChange("middleName", value)
+            }
+            value={formData.middleName}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Family Name"
+            onChangeText={(value) =>
+              this.handleInputChange("familyName", value)
+            }
+            value={formData.familyName}
+          />
+          {errors.familyName && (
+            <Text style={styles.error}>{errors.familyName}</Text>
           )}
-        />
 
-        <Controller
-          control={control}
-          name="familyName"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder="Family Name"
-              onChangeText={onChange}
-              value={value}
-            />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            onChangeText={(value) => this.handleInputChange("email", value)}
+            value={formData.email}
+          />
+          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            onChangeText={(value) => this.handleInputChange("password", value)}
+            value={formData.password}
+          />
+          {errors.password && (
+            <Text style={styles.error}>{errors.password}</Text>
           )}
-        />
-        {errors.familyName && (
-          <Text style={styles.error}>{errors.familyName.message}</Text>
-        )}
 
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onChangeText={onChange}
-              value={value}
-            />
+          <Text style={{ color: "white", marginBottom: 5 }}>Select Role:</Text>
+
+          <DropDownPicker
+            open={open}
+            setOpen={(open) => this.setState({ open })}
+            items={[
+              { label: "Employee", value: "employee" },
+              { label: "Admin", value: "admin" },
+            ]}
+            value={formData.role}
+            setValue={(value) => this.handleInputChange("role", value)}
+            setItems={() => {}}
+            placeholder="Choose Role"
+            multiple={false}
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+          />
+          {errors.role && <Text style={styles.error}>{errors.role}</Text>}
+
+          <Text style={{ color: "white", marginBottom: 5 }}>
+            Select Location:
+          </Text>
+
+          <DropDownPicker
+            open={open}
+            setOpen={(open) => this.setState({ open })}
+            items={items}
+            value={formData.emp_location}
+            setValue={(value) => this.handleInputChange("emp_location", value)}
+            setItems={() => {}}
+            placeholder="Choose Locations"
+            multiple={true}
+            mode="BADGE"
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+          />
+          {errors.emp_location && (
+            <Text style={styles.error}>{errors.emp_location}</Text>
           )}
-        />
-        {errors.email && (
-          <Text style={styles.error}>{errors.email.message}</Text>
-        )}
 
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              secureTextEntry
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-        />
-        {errors.password && (
-          <Text style={styles.error}>{errors.password.message}</Text>
-        )}
-
-        <Text style={{ color: "white", marginBottom: 5 }}>Select Role:</Text>
-
-        <Controller
-          control={control}
-          name="role"
-          render={({ field: { value, onChange } }) => (
-            <DropDownPicker
-              open={open}
-              setOpen={setOpen}
-              items={[
-                { label: "Employee", value: "employee" },
-                { label: "Admin", value: "admin" },
-              ]}
-              value={value}
-              setValue={(cb) => {
-                const newValue = cb(value);
-                onChange(newValue);
-              }}
-              setItems={setItems}
-              placeholder="Choose Role"
-              multiple={false}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-            />
-          )}
-        />
-        {errors.role && <Text style={styles.error}>{errors.role.message}</Text>}
-
-        <Text style={{ color: "white", marginBottom: 5 }}>
-          Select Location:
-        </Text>
-
-        <Controller
-          control={control}
-          name="emp_location"
-          render={({ field: { value, onChange } }) => (
-            <DropDownPicker
-              open={open}
-              setOpen={setOpen}
-              items={items}
-              value={value}
-              setValue={(cb) => {
-                const newValue = cb(value);
-                onChange(newValue);
-              }}
-              setItems={setItems}
-              placeholder="Choose Locations"
-              multiple={true}
-              mode="BADGE"
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-            />
-          )}
-        />
-        {errors.emp_location && (
-          <Text style={styles.error}>{errors.emp_location.message}</Text>
-        )}
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleSubmit(onSubmit)}
-        >
-          <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
+          <TouchableOpacity style={styles.button} onPress={this.handleSubmit}>
+            <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 }
 
 const styles = StyleSheet.create({

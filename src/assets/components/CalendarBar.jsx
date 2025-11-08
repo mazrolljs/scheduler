@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDateRange } from "../../utils/utils";
+import { Colors } from "../constants/colors";
 
 export default function CalendarBar({
   weekStart,
@@ -14,7 +15,7 @@ export default function CalendarBar({
     <View
       style={{
         height: 35,
-        backgroundColor: "#4F46E5",
+        backgroundColor: Colors.Pcalight.text,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
@@ -23,13 +24,27 @@ export default function CalendarBar({
       pointerEvents={pointerEvents}
     >
       <Pressable onPress={prevWeek}>
-        <Ionicons name="chevron-back" size={24} color="#fff" />
+        <Ionicons
+          name="chevron-back"
+          size={24}
+          color={Colors.light.background}
+        />
       </Pressable>
-      <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 18 }}>
+      <Text
+        style={{
+          color: Colors.light.background,
+          fontWeight: "bold",
+          fontSize: 18,
+        }}
+      >
         {formatDateRange(weekStart)} – {formatDateRange(weekEnd)}
       </Text>
       <Pressable onPress={nextWeek}>
-        <Ionicons name="chevron-forward" size={24} color="#fff" />
+        <Ionicons
+          name="chevron-forward"
+          size={24}
+          color={Colors.light.background}
+        />
       </Pressable>
     </View>
   );

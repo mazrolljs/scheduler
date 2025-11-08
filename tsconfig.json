@@ -10,7 +10,8 @@
     "**/*.jsx",
     "nativewind-env.d.ts",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "extrascripts/uploadProfileImages.mjs"
   ],
   "extends": "expo/tsconfig.base"
 }

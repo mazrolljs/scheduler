@@ -1,70 +1,63 @@
-import React, { useState, useEffect } from "react";
+// src/app/drawer/screens/user/OfferedShiftScreen.jsx
+import React from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Platform,
   Alert,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../../../services/firebaseConfig";
 import { format } from "date-fns";
+import { Colors } from "../../../../assets/constants/colors";
+import { globalStyles } from "../../../../assets/constants/styles";
+import CustomCalendar from "../../../../assets/components/CustomCalendar";
+import CustomTimePicker from "../../../../assets/components/CustomTime";
 import {
-  generateTimeOptions,
-  handleDateInput,
-  handleStartTimeChange,
-  handleEndTimeChange,
-} from "../../../../utils/utils";
+  fetchEmployees,
+  fetchLocations,
+} from "../../../../assets/constants/functions";
 
-export default function OfferedShiftScreen() {
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const [startTime, setStartTime] = useState("07:00");
-  const [endTime, setEndTime] = useState("15:00");
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-
-  const [selectedEmpId, setSelectedEmpId] = useState("");
-  const [employees, setEmployees] = useState([]);
-
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [locations, setLocations] = useState([]);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [showEmployeePicker, setShowEmployeePicker] = useState(false);
-  const [notes, setNotes] = useState("");
-
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      const empSnap = await getDocs(collection(db, "users"));
-      setEmployees(empSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+export default class OfferedShiftScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      date: new Date(),
+      showCalendar: false,
+      startTime: "07:00 AM",
+      endTime: "03:00 PM",
+      showStartTimePicker: false,
+      showEndTimePicker: false,
+      selectedEmpId: "",
+      employees: [],
+      selectedLocation: "",
+      locations: [],
+      showLocationPicker: false,
+      showEmployeePicker: false,
+      notes: "",
     };
+  }
 
-    const fetchLocations = async () => {
-      const locSnap = await getDocs(collection(db, "location"));
-      setLocations(locSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    };
+  componentDidMount() {
+    this.fetchEmployees();
+    this.fetchLocations();
+  }
 
-    fetchEmployees();
-    fetchLocations();
-  }, []);
+  fetchEmployees = async () => {
+    const employees = await fetchEmployees();
+    this.setState({ employees });
+  };
 
-  const timeOptions = generateTimeOptions();
+  fetchLocations = async () => {
+    const locations = await fetchLocations();
+    this.setState({ locations });
+  };
 
-  const handleDateInputWrapper = (text) => handleDateInput(text, setDate);
-
-  const handleStartTimeChangeWrapper = (val) =>
-    handleStartTimeChange(val, setStartTime, setEndTime);
-
-  const handleEndTimeChangeWrapper = (val) =>
-    handleEndTimeChange(val, setEndTime);
-
-  // ✅ Save to emp_sch_main
-  const handleSubmit = async () => {
+  handleSubmit = async () => {
+    const { date, startTime, endTime, selectedEmpId, selectedLocation, notes } =
+      this.state;
     try {
       await addDoc(collection(db, "emp_sch_main"), {
         date: format(date, "yyyy-MM-dd"),
@@ -77,211 +70,178 @@ export default function OfferedShiftScreen() {
         created_at: new Date(),
       });
       Alert.alert("✅ Success", "Shift saved successfully!");
-      setNotes("");
-      setSelectedEmpId("");
-      setSelectedLocation("");
-      setStartTime("07:00");
-      setEndTime("15:00");
-      setDate(new Date());
+      this.setState({
+        notes: "",
+        selectedEmpId: "",
+        selectedLocation: "",
+        startTime: "07:00 AM",
+        endTime: "03:00 PM",
+        date: new Date(),
+      });
     } catch (error) {
       Alert.alert("❌ Error", error.message);
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 10 }}>
-        Offer a New Shift
-      </Text>
+  render() {
+    const {
+      date,
+      showCalendar,
+      startTime,
+      endTime,
+      showStartTimePicker,
+      showEndTimePicker,
+      selectedEmpId,
+      employees,
+      selectedLocation,
+      locations,
+      showLocationPicker,
+      showEmployeePicker,
+      notes,
+    } = this.state;
 
-      {/* 📅 Date */}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowDatePicker(!showDatePicker)}
-      >
-        <Text style={styles.inputText}>{format(date, "dd-MM-yyyy")}</Text>
-      </TouchableOpacity>
-      {showDatePicker && (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Type date (dd-mm-yyyy or dd-mm-yy)"
-            onChangeText={handleDateInputWrapper}
+    return (
+      <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
+        <Text style={globalStyles.subtitle}>Offer a New Shift</Text>
+
+        {/* Date */}
+        <TouchableOpacity
+          style={globalStyles.input}
+          onPress={() => this.setState({ showCalendar: !showCalendar })}
+        >
+          <Text style={globalStyles.inputText}>
+            {format(date, "dd-MM-yyyy")}
+          </Text>
+        </TouchableOpacity>
+
+        {showCalendar && (
+          <CustomCalendar
+            selectedDate={date}
+            onDateSelect={(d) =>
+              this.setState({ date: d, showCalendar: false })
+            }
           />
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display={Platform.OS === "ios" ? "inline" : "default"}
-            onChange={(e, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDate(selectedDate);
-            }}
+        )}
+
+        {/* Start Time */}
+        <TouchableOpacity
+          style={globalStyles.input}
+          onPress={() => this.setState({ showStartTimePicker: true })}
+        >
+          <Text style={globalStyles.inputText}>Start Time: {startTime}</Text>
+        </TouchableOpacity>
+
+        {showStartTimePicker && (
+          <CustomTimePicker
+            selectedTime={startTime}
+            minuteInterval={10} // set your interval here
+            onTimeSelect={(time) =>
+              this.setState({ startTime: time, showStartTimePicker: false })
+            }
           />
-        </>
-      )}
+        )}
 
-      {/* 🕘 Start Time */}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowStartPicker(!showStartPicker)}
-      >
-        <Text style={styles.inputText}>Start Time: {startTime}</Text>
-      </TouchableOpacity>
-      {showStartPicker && (
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={startTime}
-            onValueChange={(val) => {
-              handleStartTimeChangeWrapper(val);
-              setShowStartPicker(false);
-            }}
-          >
-            {timeOptions.map((t) => (
-              <Picker.Item key={t} label={t} value={t} />
-            ))}
-          </Picker>
-        </View>
-      )}
+        {/* End Time */}
+        <TouchableOpacity
+          style={globalStyles.input}
+          onPress={() => this.setState({ showEndTimePicker: true })}
+        >
+          <Text style={globalStyles.inputText}>End Time: {endTime}</Text>
+        </TouchableOpacity>
 
-      {/* 🕔 End Time */}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowEndPicker(!showEndPicker)}
-      >
-        <Text style={styles.inputText}>End Time: {endTime}</Text>
-      </TouchableOpacity>
-      {showEndPicker && (
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={endTime}
-            onValueChange={(val) => {
-              handleEndTimeChangeWrapper(val);
-              setShowEndPicker(false);
-            }}
-          >
-            {timeOptions.map((t) => (
-              <Picker.Item key={t} label={t} value={t} />
-            ))}
-          </Picker>
-        </View>
-      )}
+        {showEndTimePicker && (
+          <CustomTimePicker
+            selectedTime={endTime}
+            minuteInterval={30} // set your interval here
+            onTimeSelect={(time) =>
+              this.setState({ endTime: time, showEndTimePicker: false })
+            }
+          />
+        )}
 
-      {/* 📍 Location */}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowLocationPicker(!showLocationPicker)}
-      >
-        <Text style={styles.inputText}>
-          {selectedLocation
-            ? `Location: ${
-                locations.find((l) => l.location_id === selectedLocation)
-                  ?.address || selectedLocation
-              }`
-            : "Select Location"}
-        </Text>
-      </TouchableOpacity>
-      {showLocationPicker && (
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedLocation}
-            onValueChange={(val) => {
-              setSelectedLocation(val);
-              setShowLocationPicker(false);
-            }}
-          >
-            <Picker.Item label="Select Location" value="" />
+        {/* Location */}
+        <TouchableOpacity
+          style={globalStyles.input}
+          onPress={() =>
+            this.setState({ showLocationPicker: !showLocationPicker })
+          }
+        >
+          <Text style={globalStyles.inputText}>
+            {selectedLocation
+              ? `Location: ${locations.find((l) => l.location_id === selectedLocation)?.address || selectedLocation}`
+              : "Select Location"}
+          </Text>
+        </TouchableOpacity>
+
+        {showLocationPicker && (
+          <View style={globalStyles.pickerContainer}>
             {locations.map((loc) => (
-              <Picker.Item
+              <TouchableOpacity
                 key={loc.location_id}
-                label={loc.address}
-                value={loc.location_id}
-              />
+                onPress={() =>
+                  this.setState({
+                    selectedLocation: loc.location_id,
+                    showLocationPicker: false,
+                  })
+                }
+              >
+                <Text style={globalStyles.inputText}>{loc.address}</Text>
+              </TouchableOpacity>
             ))}
-          </Picker>
-        </View>
-      )}
+          </View>
+        )}
 
-      {/* 👤 Employee */}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowEmployeePicker(!showEmployeePicker)}
-      >
-        <Text style={styles.inputText}>
-          {selectedEmpId
-            ? `Employee: ${
-                employees.find((emp) => emp.id === selectedEmpId)?.name ||
-                selectedEmpId
-              }`
-            : "Select Employee or leave blank for shared shift"}
-        </Text>
-      </TouchableOpacity>
+        {/* Employee */}
+        <TouchableOpacity
+          style={globalStyles.input}
+          onPress={() =>
+            this.setState({ showEmployeePicker: !showEmployeePicker })
+          }
+        >
+          <Text style={globalStyles.inputText}>
+            {selectedEmpId
+              ? `Employee: ${employees.find((e) => e.id === selectedEmpId)?.name || selectedEmpId}`
+              : "Select Employee or leave blank for shared shift"}
+          </Text>
+        </TouchableOpacity>
 
-      {showEmployeePicker && (
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedEmpId}
-            onValueChange={(val) => {
-              setSelectedEmpId(val);
-              setShowEmployeePicker(false);
-            }}
-          >
-            <Picker.Item label="Select Employee (or leave blank)" value="" />
+        {showEmployeePicker && (
+          <View style={globalStyles.pickerContainer}>
             {employees.map((emp) => (
-              <Picker.Item
+              <TouchableOpacity
                 key={emp.id}
-                label={`${emp.name} (${emp.emp_id})`}
-                value={emp.id}
-              />
+                onPress={() =>
+                  this.setState({
+                    selectedEmpId: emp.id,
+                    showEmployeePicker: false,
+                  })
+                }
+              >
+                <Text
+                  style={globalStyles.inputText}
+                >{`${emp.name} (${emp.emp_id})`}</Text>
+              </TouchableOpacity>
             ))}
-          </Picker>
-        </View>
-      )}
+          </View>
+        )}
 
-      {/* 📝 Notes */}
-      <TextInput
-        style={styles.textArea}
-        placeholder="Notes (optional)"
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-      />
+        {/* Notes */}
+        <TextInput
+          style={globalStyles.textArea}
+          placeholder="Notes (optional)"
+          value={notes}
+          onChangeText={(text) => this.setState({ notes: text })}
+          multiline
+        />
 
-      {/* 💾 Save Button */}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={{ color: "#fff", fontSize: 16 }}>Save Shift</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
+        {/* Save */}
+        <TouchableOpacity
+          style={globalStyles.button}
+          onPress={this.handleSubmit}
+        >
+          <Text style={globalStyles.buttonText}>Save Shift</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  }
 }
-
-const styles = {
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  inputText: { fontSize: 16 },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 10,
-    height: 80,
-    marginVertical: 10,
-  },
-  button: {
-    backgroundColor: "#5f1616",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-};

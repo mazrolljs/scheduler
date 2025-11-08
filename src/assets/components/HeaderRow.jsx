@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { Colors } from "../constants/colors";
 
 export default function HeaderRow({
   weekDaysWithDates,
@@ -14,10 +15,10 @@ export default function HeaderRow({
         style={{
           width: hourColWidth,
           height: 45,
-          backgroundColor: "#f0f0f0",
+          backgroundColor: Colors.light.background,
           borderRightWidth: 1,
           borderBottomWidth: 1,
-          borderColor: "#ccc",
+          borderColor: "#6038be",
         }}
       />
       {weekDaysWithDates.map((dateObj, idx) => {
@@ -30,7 +31,7 @@ export default function HeaderRow({
               height: 45,
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: isToday ? "#F59E0B" : "#ddd",
+              backgroundColor: isToday ? Colors.PRIMARY : "#ddd",
               borderRightWidth: 1,
               borderBottomWidth: 1,
               borderColor: "#ccc",
@@ -40,7 +41,9 @@ export default function HeaderRow({
               style={{
                 fontWeight: "bold",
                 fontSize: 12,
-                color: isToday ? "#fff" : "#000",
+                color: isToday
+                  ? Colors.light.background
+                  : Colors.dark.background,
               }}
             >
               {dateObj.toLocaleDateString("en-US", { weekday: "short" })}
@@ -49,7 +52,9 @@ export default function HeaderRow({
               style={{
                 fontWeight: "bold",
                 fontSize: 12,
-                color: isToday ? "#fff" : "#000",
+                color: isToday
+                  ? Colors.light.background
+                  : Colors.dark.background,
               }}
             >
               {dateObj.getDate()}

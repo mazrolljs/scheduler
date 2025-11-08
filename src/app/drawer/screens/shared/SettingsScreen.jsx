@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -11,58 +11,69 @@ import { Picker } from "@react-native-picker/picker";
 import { collection, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../../../../services/firebaseConfig";
 import { generateNextEmpId } from "../../../../utils/utils";
-export default function SettingsScreen() {
-  // === Collapse States ===
-  const [showAddEmployee, setShowAddEmployee] = useState(true);
-  const [showAddLocation, setShowAddLocation] = useState(true);
-  const [showEmployeeInduction, setShowEmployeeInduction] = useState(true);
+import { Colors } from "../../../../assets/constants/colors";
+import { globalStyles } from "../../../../assets/constants/styles";
+import {
+  fetchEmployees,
+  fetchLocations,
+} from "../../../../assets/constants/functions";
 
-  // === Employee Form States ===
-  const [empName, setEmpName] = useState("");
-  const [empAddress, setEmpAddress] = useState("");
-  const [empPassword, setEmpPassword] = useState("");
-  const [empLocationId, setEmpLocationId] = useState("");
-  const [locations, setLocations] = useState([]);
-  const [showAddEmployeeLocationPicker, setShowAddEmployeeLocationPicker] =
-    useState(false);
+export default class SettingsScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      // === Collapse States ===
+      showAddEmployee: true,
+      showAddLocation: true,
+      showEmployeeInduction: true,
 
-  // === Location Form States ===
-  const [locationId, setLocationId] = useState("");
-  const [locationAddress, setLocationAddress] = useState("");
+      // === Employee Form States ===
+      empName: "",
+      empAddress: "",
+      empPassword: "",
+      empLocationId: "",
+      locations: [],
+      showAddEmployeeLocationPicker: false,
 
-  // === Employee Induction States ===
-  const [inductionEmpId, setInductionEmpId] = useState("");
-  const [inductionLocationId, setInductionLocationId] = useState("");
-  const [employees, setEmployees] = useState([]);
-  const [showInductionLocationPicker, setShowInductionLocationPicker] =
-    useState(false);
-  const [showInductionEmployeePicker, setShowInductionEmployeePicker] =
-    useState(false);
+      // === Location Form States ===
+      locationId: "",
+      locationAddress: "",
 
-  // === Load Locations & Employees ===
-  useEffect(() => {
-    const fetchLocations = async () => {
-      const locSnap = await getDocs(collection(db, "location"));
-      setLocations(locSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      // === Employee Induction States ===
+      inductionEmpId: "",
+      inductionLocationId: "",
+      employees: [],
+      showInductionLocationPicker: false,
+      showInductionEmployeePicker: false,
     };
-    const fetchEmployees = async () => {
-      const empSnap = await getDocs(collection(db, "users"));
-      setEmployees(empSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    };
-    fetchLocations();
-    fetchEmployees();
-  }, []);
+  }
 
-  const generateNextEmpIdWrapper = async () => generateNextEmpId(db);
+  componentDidMount() {
+    this.fetchLocations();
+    this.fetchEmployees();
+  }
+
+  fetchLocations = async () => {
+    const locations = await fetchLocations();
+    this.setState({ locations });
+  };
+
+  fetchEmployees = async () => {
+    const employees = await fetchEmployees();
+    this.setState({ employees });
+  };
+
+  generateNextEmpIdWrapper = async () => generateNextEmpId(db);
 
   // === Add Employee ===
-  const handleAddEmployee = async () => {
+  handleAddEmployee = async () => {
+    const { empName, empAddress, empPassword, empLocationId } = this.state;
     if (!empName || !empAddress || !empPassword || !empLocationId) {
       Alert.alert("❌ Error", "Fill all fields for Employee");
       return;
     }
     try {
-      const newEmpId = await generateNextEmpIdWrapper();
+      const newEmpId = await this.generateNextEmpIdWrapper();
       await addDoc(collection(db, "users"), {
         emp_id: newEmpId,
         name: empName,
@@ -72,21 +83,23 @@ export default function SettingsScreen() {
         created_at: new Date(),
       });
       Alert.alert("✅ Success", `Employee ${empName} added`);
-      setEmpName("");
-      setEmpAddress("");
-      setEmpPassword("");
-      setEmpLocationId("");
-      setShowAddEmployee(false);
+      this.setState({
+        empName: "",
+        empAddress: "",
+        empPassword: "",
+        empLocationId: "",
+        showAddEmployee: false,
+      });
       // Refresh employees list
-      const empSnap = await getDocs(collection(db, "users"));
-      setEmployees(empSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      this.fetchEmployees();
     } catch (error) {
       Alert.alert("❌ Error", error.message);
     }
   };
 
   // === Add Location ===
-  const handleAddLocation = async () => {
+  handleAddLocation = async () => {
+    const { locationId, locationAddress } = this.state;
     if (!locationId || !locationAddress) {
       Alert.alert("❌ Error", "Enter both Location ID and Address");
       return;
@@ -98,19 +111,21 @@ export default function SettingsScreen() {
         created_at: new Date(),
       });
       Alert.alert("✅ Success", "Location added");
-      setLocationId("");
-      setLocationAddress("");
-      setShowAddLocation(false);
+      this.setState({
+        locationId: "",
+        locationAddress: "",
+        showAddLocation: false,
+      });
       // Refresh locations list
-      const locSnap = await getDocs(collection(db, "location"));
-      setLocations(locSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      this.fetchLocations();
     } catch (error) {
       Alert.alert("❌ Error", error.message);
     }
   };
 
   // === Employee Induction ===
-  const handleEmployeeInduction = async () => {
+  handleEmployeeInduction = async () => {
+    const { inductionEmpId, inductionLocationId } = this.state;
     if (!inductionEmpId || !inductionLocationId) {
       Alert.alert("❌ Error", "Select Employee & Location");
       return;
@@ -122,255 +137,283 @@ export default function SettingsScreen() {
         created_at: new Date(),
       });
       Alert.alert("✅ Success", "Employee induction saved");
-      setInductionEmpId("");
-      setInductionLocationId("");
-      setShowEmployeeInduction(false);
+      this.setState({
+        inductionEmpId: "",
+        inductionLocationId: "",
+        showEmployeeInduction: false,
+      });
     } catch (error) {
       Alert.alert("❌ Error", error.message);
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text style={{ fontSize: 22, fontWeight: "700", marginBottom: 10 }}>
-        Settings
-      </Text>
+  render() {
+    const {
+      showAddEmployee,
+      showAddLocation,
+      showEmployeeInduction,
+      empName,
+      empAddress,
+      empPassword,
+      empLocationId,
+      locations,
+      showAddEmployeeLocationPicker,
+      locationId,
+      locationAddress,
+      inductionEmpId,
+      inductionLocationId,
+      employees,
+      showInductionLocationPicker,
+      showInductionEmployeePicker,
+    } = this.state;
 
-      {/* Add Employee */}
-      <TouchableOpacity
-        style={styles.sectionHeader}
-        onPress={() => {
-          setShowAddEmployee(!showAddEmployee);
-          setShowAddLocation(false);
-          setShowEmployeeInduction(false);
-        }}
-      >
-        <Text style={{ fontSize: 18 }}>Add Employee</Text>
-      </TouchableOpacity>
-      {showAddEmployee && (
-        <View style={styles.sectionBody}>
-          <TextInput
-            placeholder="Name"
-            style={styles.input}
-            value={empName}
-            onChangeText={setEmpName}
-          />
-          <TextInput
-            placeholder="Address"
-            style={styles.input}
-            value={empAddress}
-            onChangeText={setEmpAddress}
-          />
-          <TextInput
-            placeholder="Password"
-            style={styles.input}
-            secureTextEntry
-            value={empPassword}
-            onChangeText={setEmpPassword}
-          />
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() =>
-              setShowAddEmployeeLocationPicker(!showAddEmployeeLocationPicker)
-            }
-          >
-            <Text style={styles.inputText}>
-              {empLocationId
-                ? `Location: ${
-                    locations.find((l) => l.location_id === empLocationId)
-                      ?.address || empLocationId
-                  }`
-                : "Select Location"}
-            </Text>
-          </TouchableOpacity>
-          {showAddEmployeeLocationPicker && (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={empLocationId}
-                onValueChange={(val) => {
-                  setEmpLocationId(val);
-                  setShowAddEmployeeLocationPicker(false);
-                }}
-              >
-                <Picker.Item label="Select Location" value="" />
-                {locations.map((loc) => (
+    return (
+      <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
+        <Text style={globalStyles.title}>Settings</Text>
+
+        {/* Add Employee */}
+        <TouchableOpacity
+          style={globalStyles.card}
+          onPress={() =>
+            this.setState({
+              showAddEmployee: !showAddEmployee,
+              showAddLocation: false,
+              showEmployeeInduction: false,
+            })
+          }
+        >
+          <Text style={globalStyles.subtitle}>Add Employee</Text>
+        </TouchableOpacity>
+        {showAddEmployee && (
+          <View style={globalStyles.card}>
+            <TextInput
+              placeholder="Name"
+              style={globalStyles.input}
+              value={empName}
+              onChangeText={(text) => this.setState({ empName: text })}
+            />
+            <TextInput
+              placeholder="Address"
+              style={globalStyles.input}
+              value={empAddress}
+              onChangeText={(text) => this.setState({ empAddress: text })}
+            />
+            <TextInput
+              placeholder="Password"
+              style={globalStyles.input}
+              secureTextEntry
+              value={empPassword}
+              onChangeText={(text) => this.setState({ empPassword: text })}
+            />
+            <TouchableOpacity
+              style={globalStyles.input}
+              onPress={() =>
+                this.setState({
+                  showAddEmployeeLocationPicker: !showAddEmployeeLocationPicker,
+                })
+              }
+            >
+              <Text style={globalStyles.inputText}>
+                {empLocationId
+                  ? `Location: ${
+                      locations.find((l) => l.location_id === empLocationId)
+                        ?.address || empLocationId
+                    }`
+                  : "Select Location"}
+              </Text>
+            </TouchableOpacity>
+            {showAddEmployeeLocationPicker && (
+              <View style={globalStyles.pickerContainer}>
+                <Picker
+                  selectedValue={empLocationId}
+                  onValueChange={(val) =>
+                    this.setState({
+                      empLocationId: val,
+                      showAddEmployeeLocationPicker: false,
+                    })
+                  }
+                  style={{ color: Colors.Pcalight.text }}
+                >
                   <Picker.Item
-                    key={loc.location_id}
-                    label={loc.address}
-                    value={loc.location_id}
+                    label="Select Location"
+                    value=""
+                    style={globalStyles.pickerItem}
                   />
-                ))}
-              </Picker>
-            </View>
-          )}
-          <TouchableOpacity style={styles.button} onPress={handleAddEmployee}>
-            <Text style={{ color: "#fff" }}>Save Employee</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+                  {locations.map((loc) => (
+                    <Picker.Item
+                      key={loc.location_id}
+                      label={loc.address}
+                      value={loc.location_id}
+                      style={globalStyles.pickerItem}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            )}
+            <TouchableOpacity
+              style={globalStyles.button}
+              onPress={this.handleAddEmployee}
+            >
+              <Text style={globalStyles.buttonText}>Save Employee</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      {/* Add Location */}
-      <TouchableOpacity
-        style={styles.sectionHeader}
-        onPress={() => {
-          setShowAddLocation(!showAddLocation);
-          setShowAddEmployee(false);
-          setShowEmployeeInduction(false);
-        }}
-      >
-        <Text style={{ fontSize: 18 }}>Add Location</Text>
-      </TouchableOpacity>
-      {showAddLocation && (
-        <View style={styles.sectionBody}>
-          <TextInput
-            placeholder="Location ID (e.g., LOC-001)"
-            style={styles.input}
-            value={locationId}
-            onChangeText={setLocationId}
-          />
-          <TextInput
-            placeholder="Address"
-            style={styles.input}
-            value={locationAddress}
-            onChangeText={setLocationAddress}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleAddLocation}>
-            <Text style={{ color: "#fff" }}>Save Location</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        {/* Add Location */}
+        <TouchableOpacity
+          style={globalStyles.card}
+          onPress={() =>
+            this.setState({
+              showAddLocation: !showAddLocation,
+              showAddEmployee: false,
+              showEmployeeInduction: false,
+            })
+          }
+        >
+          <Text style={globalStyles.subtitle}>Add Location</Text>
+        </TouchableOpacity>
+        {showAddLocation && (
+          <View style={globalStyles.card}>
+            <TextInput
+              placeholder="Location ID (e.g., LOC-001)"
+              style={globalStyles.input}
+              value={locationId}
+              onChangeText={(text) => this.setState({ locationId: text })}
+            />
+            <TextInput
+              placeholder="Address"
+              style={globalStyles.input}
+              value={locationAddress}
+              onChangeText={(text) => this.setState({ locationAddress: text })}
+            />
+            <TouchableOpacity
+              style={globalStyles.button}
+              onPress={this.handleAddLocation}
+            >
+              <Text style={globalStyles.buttonText}>Save Location</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      {/* Employee Induction */}
-      <TouchableOpacity
-        style={styles.sectionHeader}
-        onPress={() => {
-          setShowEmployeeInduction(!showEmployeeInduction);
-          setShowAddEmployee(false);
-          setShowAddLocation(false);
-        }}
-      >
-        <Text style={{ fontSize: 18 }}>Employee Induction</Text>
-      </TouchableOpacity>
-      {showEmployeeInduction && (
-        <View style={styles.sectionBody}>
-          {/* 👤 Employee */}
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() =>
-              setShowInductionEmployeePicker(!showInductionEmployeePicker)
-            }
-          >
-            <Text style={styles.inputText}>
-              {inductionEmpId
-                ? `Employee: ${
-                    employees.find((emp) => emp.id === inductionEmpId)?.name ||
-                    inductionEmpId
-                  }`
-                : "Select Employee"}
-            </Text>
-          </TouchableOpacity>
-          {showInductionEmployeePicker && (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={inductionEmpId}
-                onValueChange={(val) => {
-                  setInductionEmpId(val);
-                  setShowInductionEmployeePicker(false);
-                }}
-              >
-                <Picker.Item label="Select Employee" value="" />
-                {employees.map((emp) => (
+        {/* Employee Induction */}
+        <TouchableOpacity
+          style={globalStyles.card}
+          onPress={() =>
+            this.setState({
+              showEmployeeInduction: !showEmployeeInduction,
+              showAddEmployee: false,
+              showAddLocation: false,
+            })
+          }
+        >
+          <Text style={globalStyles.subtitle}>Employee Induction</Text>
+        </TouchableOpacity>
+        {showEmployeeInduction && (
+          <View style={globalStyles.card}>
+            {/* 👤 Employee */}
+            <TouchableOpacity
+              style={globalStyles.input}
+              onPress={() =>
+                this.setState({
+                  showInductionEmployeePicker: !showInductionEmployeePicker,
+                })
+              }
+            >
+              <Text style={globalStyles.inputText}>
+                {inductionEmpId
+                  ? `Employee: ${
+                      employees.find((emp) => emp.id === inductionEmpId)
+                        ?.name || inductionEmpId
+                    }`
+                  : "Select Employee"}
+              </Text>
+            </TouchableOpacity>
+            {showInductionEmployeePicker && (
+              <View style={globalStyles.pickerContainer}>
+                <Picker
+                  selectedValue={inductionEmpId}
+                  onValueChange={(val) =>
+                    this.setState({
+                      inductionEmpId: val,
+                      showInductionEmployeePicker: false,
+                    })
+                  }
+                  style={{ color: Colors.Pcalight.text }}
+                >
                   <Picker.Item
-                    key={emp.id}
-                    label={`${emp.name} (${emp.emp_id})`}
-                    value={emp.id}
+                    label="Select Employee"
+                    value=""
+                    style={globalStyles.pickerItem}
                   />
-                ))}
-              </Picker>
-            </View>
-          )}
+                  {employees.map((emp) => (
+                    <Picker.Item
+                      key={emp.id}
+                      label={`${emp.name} (${emp.emp_id})`}
+                      value={emp.id}
+                      style={globalStyles.pickerItem}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            )}
 
-          {/* 📍 Location */}
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() =>
-              setShowInductionLocationPicker(!showInductionLocationPicker)
-            }
-          >
-            <Text style={styles.inputText}>
-              {inductionLocationId
-                ? `Location: ${
-                    locations.find((l) => l.location_id === inductionLocationId)
-                      ?.address || inductionLocationId
-                  }`
-                : "Select Location"}
-            </Text>
-          </TouchableOpacity>
-          {showInductionLocationPicker && (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={inductionLocationId}
-                onValueChange={(val) => {
-                  setInductionLocationId(val);
-                  setShowInductionLocationPicker(false);
-                }}
-              >
-                <Picker.Item label="Select Location" value="" />
-                {locations.map((loc) => (
+            {/* 📍 Location */}
+            <TouchableOpacity
+              style={globalStyles.input}
+              onPress={() =>
+                this.setState({
+                  showInductionLocationPicker: !showInductionLocationPicker,
+                })
+              }
+            >
+              <Text style={globalStyles.inputText}>
+                {inductionLocationId
+                  ? `Location: ${
+                      locations.find(
+                        (l) => l.location_id === inductionLocationId
+                      )?.address || inductionLocationId
+                    }`
+                  : "Select Location"}
+              </Text>
+            </TouchableOpacity>
+            {showInductionLocationPicker && (
+              <View style={globalStyles.pickerContainer}>
+                <Picker
+                  selectedValue={inductionLocationId}
+                  onValueChange={(val) =>
+                    this.setState({
+                      inductionLocationId: val,
+                      showInductionLocationPicker: false,
+                    })
+                  }
+                  style={{ color: Colors.Pcalight.text }}
+                >
                   <Picker.Item
-                    key={loc.location_id}
-                    label={loc.address}
-                    value={loc.location_id}
+                    label="Select Location"
+                    value=""
+                    style={globalStyles.pickerItem}
                   />
-                ))}
-              </Picker>
-            </View>
-          )}
+                  {locations.map((loc) => (
+                    <Picker.Item
+                      key={loc.location_id}
+                      label={loc.address}
+                      value={loc.location_id}
+                      style={globalStyles.pickerItem}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            )}
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleEmployeeInduction}
-          >
-            <Text style={{ color: "#fff" }}>Save Induction</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </ScrollView>
-  );
+            <TouchableOpacity
+              style={globalStyles.button}
+              onPress={this.handleEmployeeInduction}
+            >
+              <Text style={globalStyles.buttonText}>Save Induction</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    );
+  }
 }
-
-const styles = {
-  sectionHeader: {
-    backgroundColor: "#ccc",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  sectionBody: {
-    padding: 10,
-    marginBottom: 10,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  inputText: { fontSize: 16 },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  button: {
-    backgroundColor: "#5f1616",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 5,
-  },
-};

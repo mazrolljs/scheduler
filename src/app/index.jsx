@@ -14,7 +14,7 @@ import { Colors } from "../assets/constants/colors";
 export default function Index() {
   const router = useRouter();
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 Colors.Pcalight.background">
       <StatusBar
         barStyle="dark-content"
         backgroundColor={Colors.Pcalight.text}
@@ -31,7 +31,7 @@ export default function Index() {
           <View className="w-3/4">
             <TouchableOpacity
               onPress={() => router.push("../auth/SignUp")}
-              className="bg-indigo-600 p-4 my-2 rounded-lg items-center"
+              className="bg-purple-900 p-4 my-2 rounded-lg items-center"
             >
               <Text className="text-white text-xl font-semibold text-center">
                 Sign Up
@@ -39,7 +39,7 @@ export default function Index() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push("../auth/SignIn")}
-              className="bg-indigo-600 p-4 my-2 rounded-lg items-center"
+              className="bg-purple-900 p-4 my-2 rounded-lg items-center"
             >
               <Text className="text-white text-xl font-semibold text-center">
                 Sign In
