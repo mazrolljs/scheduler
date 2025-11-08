@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../../../services/firebaseConfig";
 import { generateNextEmpId } from "../../../../utils/utils";
 import { Colors } from "../../../../assets/constants/colors";
