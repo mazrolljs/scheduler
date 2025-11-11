@@ -18,6 +18,25 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: Colors.Pcalight.background,
   },
 
+  // HEADER (ADDED)
+  header: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  // AVATAR (ADDED — FIX)
+  avatar: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 4,
+    borderColor: Colors.text, // or Colors.PRIMARY
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 3,
+    backgroundColor: Colors.light.tilt, // smooth border
+  },
+
   // Buttons
   button: {
     backgroundColor: Colors.PRIMARY,
@@ -52,6 +71,7 @@ export const globalStyles = StyleSheet.create({
     fontSize: 16,
     color: Colors.Pcalight.text,
   },
+
   textArea: {
     borderWidth: 1,
     borderColor: Colors.light.text,
@@ -82,7 +102,7 @@ export const globalStyles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: Colors.dark.background,
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: "center",
   },
   subtitle: {
@@ -90,6 +110,7 @@ export const globalStyles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.Pcalight.text,
     marginBottom: 10,
+    textAlign: "center",
   },
   bodyText: {
     fontSize: 16,
@@ -109,19 +130,40 @@ export const globalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
 
-  // Grid
-  gridBox: {
-    borderRightWidth: 1,
+  // Info rows (ADDED)
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 6,
+  },
+  infoLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.dark.background,
+  },
+  infoValue: {
+    fontSize: 16,
+    color: Colors.Pcalight.text,
+  },
+
+  // List items (ADDED)
+  listItem: {
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderColor: Colors.light.text,
-    justifyContent: "center",
-    alignItems: "center",
   },
-  gridBoxFilled: {
-    backgroundColor: Colors.SECONDARY,
+  listTitle: {
+    fontSize: 16,
+    fontWeight: "600",
   },
-  gridBoxEmpty: {
-    backgroundColor: Colors.light.background,
+  listDate: {
+    fontSize: 14,
+    color: Colors.Pcalight.text,
+  },
+  emptyText: {
+    textAlign: "center",
+    color: Colors.light.text,
+    marginTop: 5,
   },
 
   // Navigation

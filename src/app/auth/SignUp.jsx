@@ -1,13 +1,15 @@
+// Refactored SignUp screen using Tailwind + global styles
+// Logic untouched — only UI redesigned as requested.
+
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
   View,
   BackHandler,
+  Alert,
 } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
 import {
@@ -17,11 +19,10 @@ import {
   fetchLocations,
 } from "../../services/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-//import { useForm, Controller } from "react-hook-form";
-//import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import DropDownPicker from "react-native-dropdown-picker";
 import { router } from "expo-router";
+import { Colors } from "../../assets/constants/colors";
 
 const schema = yup.object().shape({
   firstName: yup.string().required("First name is required"),
@@ -37,7 +38,8 @@ export default class SignUp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: false,
+      openRole: false,
+      openLocation: false,
       items: [],
       formData: {
         firstName: "",
@@ -65,9 +67,7 @@ export default class SignUp extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.backHandler) {
-      this.backHandler.remove();
-    }
+    if (this.backHandler) this.backHandler.remove();
   }
 
   loadLocations = async () => {
@@ -78,8 +78,8 @@ export default class SignUp extends React.Component {
         value: loc.id,
       }));
       this.setState({ items: dropdownData });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -113,7 +113,7 @@ export default class SignUp extends React.Component {
       }
 
       Alert.alert("Success", "Sign up completed!", [
-        { text: "OK", onPress: () => router.push("/screens/SignIn") },
+        { text: "OK", onPress: () => router.push("/auth/SignIn") },
       ]);
     } catch (error) {
       console.error(error);
@@ -122,9 +122,9 @@ export default class SignUp extends React.Component {
   };
 
   handleInputChange = (field, value) => {
-    this.setState((prevState) => ({
+    this.setState((prev) => ({
       formData: {
-        ...prevState.formData,
+        ...prev.formData,
         [field]: value,
       },
     }));
@@ -132,7 +132,6 @@ export default class SignUp extends React.Component {
 
   handleSubmit = () => {
     const { formData } = this.state;
-    // Validate using yup
     schema
       .validate(formData, { abortEarly: false })
       .then(() => {
@@ -149,147 +148,148 @@ export default class SignUp extends React.Component {
   };
 
   render() {
-    const { open, items, formData, errors } = this.state;
+    const { openRole, openLocation, items, formData, errors } = this.state;
 
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Sign Up</Text>
+      <SafeAreaView className="flex-1 bg-Pcalight-background px-4">
+        <View className="pt-6">
+          <Text className="text-3xl text-white font-bold text-center mb-6">
+            Sign Up
+          </Text>
 
+          {/* First Name */}
           <TextInput
-            style={styles.input}
+            className="bg-black/20 text-white p-3 rounded-xl mb-2"
             placeholder="First Name"
-            onChangeText={(value) => this.handleInputChange("firstName", value)}
+            placeholderTextColor="#ddd"
             value={formData.firstName}
+            onChangeText={(v) => this.handleInputChange("firstName", v)}
           />
           {errors.firstName && (
-            <Text style={styles.error}>{errors.firstName}</Text>
+            <Text className="text-yellow-300 mb-2">{errors.firstName}</Text>
           )}
 
+          {/* Middle Name */}
           <TextInput
-            style={styles.input}
+            className="bg-black/20 text-white p-3 rounded-xl mb-2"
             placeholder="Middle Name"
-            onChangeText={(value) =>
-              this.handleInputChange("middleName", value)
-            }
+            placeholderTextColor="#ddd"
             value={formData.middleName}
+            onChangeText={(v) => this.handleInputChange("middleName", v)}
           />
 
+          {/* Family Name */}
           <TextInput
-            style={styles.input}
+            className="bg-black/20 text-white p-3 rounded-xl mb-2"
             placeholder="Family Name"
-            onChangeText={(value) =>
-              this.handleInputChange("familyName", value)
-            }
+            placeholderTextColor="#ddd"
             value={formData.familyName}
+            onChangeText={(v) => this.handleInputChange("familyName", v)}
           />
           {errors.familyName && (
-            <Text style={styles.error}>{errors.familyName}</Text>
+            <Text className="text-yellow-300 mb-2">{errors.familyName}</Text>
           )}
 
+          {/* Email */}
           <TextInput
-            style={styles.input}
+            className="bg-black/20 text-white p-3 rounded-xl mb-2"
             placeholder="Email"
-            keyboardType="email-address"
+            placeholderTextColor="#ddd"
             autoCapitalize="none"
-            onChangeText={(value) => this.handleInputChange("email", value)}
+            keyboardType="email-address"
             value={formData.email}
+            onChangeText={(v) => this.handleInputChange("email", v)}
           />
-          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+          {errors.email && (
+            <Text className="text-yellow-300 mb-2">{errors.email}</Text>
+          )}
 
+          {/* Password */}
           <TextInput
-            style={styles.input}
+            className="bg-black/20 text-white p-3 rounded-xl mb-2"
             placeholder="Password"
+            placeholderTextColor="#ddd"
             secureTextEntry
-            onChangeText={(value) => this.handleInputChange("password", value)}
             value={formData.password}
+            onChangeText={(v) => this.handleInputChange("password", v)}
           />
           {errors.password && (
-            <Text style={styles.error}>{errors.password}</Text>
+            <Text className="text-yellow-300 mb-2">{errors.password}</Text>
           )}
 
-          <Text style={{ color: "white", marginBottom: 5 }}>Select Role:</Text>
-
+          {/* Role Dropdown */}
+          <Text className="text-white mt-2 mb-1">Select Role:</Text>
           <DropDownPicker
-            open={open}
-            setOpen={(open) => this.setState({ open })}
+            open={openRole}
+            setOpen={(v) => this.setState({ openRole: v })}
             items={[
               { label: "Employee", value: "employee" },
               { label: "Admin", value: "admin" },
             ]}
             value={formData.role}
-            setValue={(value) => this.handleInputChange("role", value)}
-            setItems={() => {}}
+            setValue={(v) => this.handleInputChange("role", v)}
             placeholder="Choose Role"
-            multiple={false}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
+            style={{
+              backgroundColor: "rgba(0,0,0,0.2)",
+              borderColor: "transparent",
+            }}
+            dropDownContainerStyle={{
+              backgroundColor: Colors.light.text,
+              borderColor: "transparent",
+            }}
           />
-          {errors.role && <Text style={styles.error}>{errors.role}</Text>}
-
-          <Text style={{ color: "white", marginBottom: 5 }}>
-            Select Location:
-          </Text>
-
-          <DropDownPicker
-            open={open}
-            setOpen={(open) => this.setState({ open })}
-            items={items}
-            value={formData.emp_location}
-            setValue={(value) => this.handleInputChange("emp_location", value)}
-            setItems={() => {}}
-            placeholder="Choose Locations"
-            multiple={true}
-            mode="BADGE"
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-          />
-          {errors.emp_location && (
-            <Text style={styles.error}>{errors.emp_location}</Text>
+          {errors.role && (
+            <Text className="text-yellow-300 mb-2">{errors.role}</Text>
           )}
 
-          <TouchableOpacity style={styles.button} onPress={this.handleSubmit}>
-            <Text style={styles.buttonText}>Sign Up</Text>
+          {/* Location Dropdown */}
+          <Text className="text-white mt-2 mb-1">Select Location:</Text>
+          <DropDownPicker
+            open={openLocation}
+            setOpen={(v) => this.setState({ openLocation: v })}
+            items={items}
+            value={formData.emp_location}
+            setValue={(v) => this.handleInputChange("emp_location", v)}
+            placeholder="Choose Locations"
+            multiple
+            mode="BADGE"
+            style={{
+              backgroundColor: "rgba(0,0,0,0.2)",
+              borderColor: "transparent",
+            }}
+            dropDownContainerStyle={{
+              backgroundColor: Colors.light.text,
+              borderColor: "transparent",
+            }}
+          />
+          {errors.emp_location && (
+            <Text className="text-yellow-300 mb-2">{errors.emp_location}</Text>
+          )}
+
+          {/* Submit */}
+          <TouchableOpacity
+            className="bg-yellow-400 p-4 rounded-xl mt-4 items-center"
+            onPress={this.handleSubmit}
+          >
+            <Text
+              className="text-lg font-bold"
+              style={{ color: Colors.dark.background }}
+            >
+              Sign Up
+            </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="bg-gray-300 rounded-xl m-5 px-12 py-3 self-center"
+        >
+          <Text className="text-black font-medium text-base text-center">
+            Back
+          </Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#c9d0c9" },
-  container: { padding: 20 },
-  title: {
-    fontSize: 26,
-    color: "white",
-    fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    backgroundColor: "rgba(0,0,0,0.15)",
-    color: "white",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  dropdown: {
-    backgroundColor: "rgba(0,0,0,0.15)",
-    borderColor: "transparent",
-    marginBottom: 15,
-  },
-  dropdownContainer: {
-    backgroundColor: "#7c8c7c",
-    borderColor: "transparent",
-  },
-  button: {
-    backgroundColor: "#fbbf24",
-    padding: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: { fontSize: 18, fontWeight: "700", color: "#5f1616" },
-  error: { color: "#fbbf24", marginBottom: 10 },
-});

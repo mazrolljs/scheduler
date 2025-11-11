@@ -36,11 +36,13 @@ export default function ProfileScreen() {
           <Image
             source={{
               uri:
-                user.profileImage ||
-                "https://i.ibb.co/vxbfSSv5/f6e90bbfdf38.jpg",
+                user.profileImage && user.profileImage.trim() !== ""
+                  ? user.profileImage
+                  : "https://i.ibb.co/2F3YFJ9/default.jpg", // FIXED URL
             }}
-            style={globalStyles.avatar}
+            style={globalStyles.avatar} // FIXED STYLE
           />
+
           <Text style={globalStyles.title}>
             {user.firstName} {user.familyName}
           </Text>
@@ -65,9 +67,10 @@ export default function ProfileScreen() {
           <InfoRow label="Role" value={user.role || "N/A"} />
         </View>
 
-        {/* House Inducted List */}
+        {/* House Inducted */}
         <View style={globalStyles.card}>
           <Text style={globalStyles.subtitle}>House Inducted</Text>
+
           {user.inductedHouses && user.inductedHouses.length > 0 ? (
             <FlatList
               data={user.inductedHouses}
@@ -88,7 +91,6 @@ export default function ProfileScreen() {
   );
 }
 
-// Reusable info row
 function InfoRow({ label, value }) {
   return (
     <View style={globalStyles.infoRow}>

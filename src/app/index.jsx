@@ -8,13 +8,13 @@ import {
   StatusBar,
   ScrollView,
 } from "react-native";
-import ddd from "../assets/images/logos/dinetimelogo.jpg";
+import ddd from "../assets/images/CENTRED_APPROACH.png";
 import { Colors } from "../assets/constants/colors";
 
 export default function Index() {
   const router = useRouter();
   return (
-    <SafeAreaView className="flex-1 Colors.Pcalight.background">
+    <SafeAreaView className="flex-1 bg-Pcalight-background">
       <StatusBar
         barStyle="dark-content"
         backgroundColor={Colors.Pcalight.text}
